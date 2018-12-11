@@ -84,8 +84,7 @@ public class MainActivity extends AppCompatActivity {
                                                     try {
                                                         root = new JSONObject(response.replace("datetime(", "").replace(")", ""));
                                                         String dateTime = root.getString("datetime");
-
-                                                       return dateTime;
+                                                        return dateTime.substring(dateTime.indexOf(" "), dateTime.indexOf("."));
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }
@@ -110,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         };
-        timer.schedule(doAsynchronousTask, 1000, 1000); //execute in every 50000 ms
+        timer.scheduleAtFixedRate(doAsynchronousTask, 1000, 1000); //execute in every 50000 ms
     }
 
     private final class MyTouchListener implements View.OnTouchListener {

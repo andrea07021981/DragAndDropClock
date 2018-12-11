@@ -2,11 +2,9 @@ package com.projects.andreafranco.draganddropclock;
 
 import android.content.ClipData;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,10 +23,6 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,18 +30,17 @@ public class MainActivity extends AppCompatActivity {
 
     private final static int INTERVAL = 1000; //1 millisecond
     private static final int TIME_LOADER_ID = 1;
-
     LinearLayout mTopLayout;
     LinearLayout mBottomLayout;
-    TextView mDraggableImageview;
+    TextView mDraggableTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mDraggableImageview = findViewById(R.id.draggable_image_view);
-        mDraggableImageview.setOnTouchListener(new MyTouchListener());
+        mDraggableTextView = findViewById(R.id.draggable_image_view);
+        mDraggableTextView.setOnTouchListener(new MyTouchListener());
         mTopLayout = findViewById(R.id.top_layout);
         mTopLayout.setOnDragListener(new MyDragListener());
         mBottomLayout = findViewById(R.id.bottom_layout);
@@ -64,44 +57,36 @@ public class MainActivity extends AppCompatActivity {
                 handler.post(new Runnable() {
                     public void run() {
                         try {
-                            AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                            RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+                            String url ="http://dateandtimeasjson.appspot.com/";
 
-                                @Override
-                                protected Void doInBackground(Void... voids) {
-                                    RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-                                    String url ="http://dateandtimeasjson.appspot.com/";
-
-                                    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                                            new Response.Listener<String>() {
-                                                @Override
-                                                public void onResponse(String response) {
-                                                    // Display the first 500 characters of the response string.
-                                                    mDraggableImageview.setText("Response is: "+ parseJsonResponse(response));
-                                                }
-
-                                                private String parseJsonResponse(String response) {
-                                                    JSONObject root = null;
-                                                    try {
-                                                        root = new JSONObject(response.replace("datetime(", "").replace(")", ""));
-                                                        String dateTime = root.getString("datetime");
-                                                        return dateTime.substring(dateTime.indexOf(" "), dateTime.indexOf("."));
-                                                    } catch (JSONException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                    return null;
-                                                }
-                                            }, new Response.ErrorListener() {
+                            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                                    new Response.Listener<String>() {
                                         @Override
-                                        public void onErrorResponse(VolleyError error) {
-                                            mDraggableImageview.setText("That didn't work!");
+                                        public void onResponse(String response) {
+                                            // Display the first 500 characters of the response string.
+                                            mDraggableTextView.setText(parseJsonResponse(response));
                                         }
-                                    });
 
-                                    queue.add(stringRequest);
-                                    return null;
+                                        private String parseJsonResponse(String response) {
+                                            JSONObject root = null;
+                                            try {
+                                                root = new JSONObject(response.replace("datetime(", "").replace(")", ""));
+                                                String dateTime = root.getString("datetime");
+                                                return dateTime.substring(dateTime.indexOf(" "), dateTime.indexOf("."));
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                            return null;
+                                        }
+                                    }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    mDraggableTextView.setText("That didn't work!");
                                 }
-                            };
-                            task.execute();
+                            });
+
+                            queue.add(stringRequest);
                         } catch (Exception e) {
 
                         }
@@ -135,9 +120,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean onDrag(View v, DragEvent event) {
             int action = event.getAction();
-            switch (event.getAction()) {
+            switch (action) {
                 case DragEvent.ACTION_DRAG_STARTED:
-                    // do nothing
                     slideUp(mBottomLayout);
                     break;
                 case DragEvent.ACTION_DRAG_ENTERED:
@@ -147,7 +131,6 @@ public class MainActivity extends AppCompatActivity {
                     v.setBackgroundDrawable(normalShape);
                     break;
                 case DragEvent.ACTION_DROP:
-                    // Dropped, reassign View to ViewGroup
                     View view = (View) event.getLocalState();
                     ViewGroup owner = (ViewGroup) view.getParent();
                     owner.removeView(view);
@@ -171,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         TranslateAnimation animate = new TranslateAnimation(
                 0,                 // fromXDelta
                 0,                 // toXDelta
-                view.getHeight(),  // fromYDelta
+                view.getHeight() / 2,  // fromYDelta
                 0);                // toYDelta
         animate.setDuration(500);
         animate.setFillAfter(true);

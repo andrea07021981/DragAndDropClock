@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         };
-        timer.scheduleAtFixedRate(doAsynchronousTask, 1000, 1000); //execute in every 50000 ms
+        timer.scheduleAtFixedRate(doAsynchronousTask, INTERVAL, INTERVAL); //execute in every 50000 ms
     }
 
     private final class MyTouchListener implements View.OnTouchListener {
